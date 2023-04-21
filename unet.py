@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -66,7 +65,7 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # 4次下采样
-        self.C1 = Conv(3, 64)
+        self.C1 = Conv(1, 64)
         self.D1 = DownSampling(64)
         self.C2 = Conv(64, 128)
         self.D2 = DownSampling(128)
@@ -87,7 +86,7 @@ class UNet(nn.Module):
         self.C9 = Conv(128, 64)
 
         self.Th = torch.nn.Sigmoid()
-        self.pred = torch.nn.Conv2d(64, 3, 3, 1, 1)
+        self.pred = torch.nn.Conv2d(64, 1, 3, 1, 1)
 
     def forward(self, x):
         # 下采样部分
@@ -107,4 +106,3 @@ class UNet(nn.Module):
         # 输出预测，这里大小跟输入是一致的
         # 可以把下采样时的中间抠出来再进行拼接，这样修改后输出就会更小
         return self.Th(self.pred(O4))
-

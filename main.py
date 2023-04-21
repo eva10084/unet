@@ -15,6 +15,7 @@ from torch.backends import cudnn
 from torch import optim
 from tool import *
 from unet import UNet
+from torchvision.utils import save_image
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -65,7 +66,7 @@ else:
 
 
 def main():
-    SAVE_DIR=prefix+'/haha'   # 保存参数路径
+    SAVE_DIR=prefix+'haha'   # 保存参数路径
 
     model = UNet()
     model = model.to(device)
@@ -88,19 +89,29 @@ def main():
 
         for image, label in tqdm(dataloader):
             image = image.to(device)
-            label = label.to(device)
+            # label = label.to(device)
+            # label = label.unsqueeze(1)
+            # print(image.shape,label.shape)
             # label_onehot = torch.FloatTensor(label.size(0), 4, label.size(1), label.size(2)).to(device)
             # label_onehot.zero_()
             # label_onehot.scatter_(1, label.unsqueeze(dim=1), 1)
 
-            label = label.to(device, dtype=torch.int64).squeeze()  # 需要int64参与运算，squeeze：(n,1,512,512)->(n,512,512)
-            label[label > 0] = 1  # !=0的地方即为1
+            label = label.to(device, dtype=torch.int64).unsqueeze(1)  # 需要int64参与运算，squeeze：(n,1,512,512)->(n,512,512)
+            # label[label > 0] = 1  # !=0的地方即为1
             out = model(image)
-            loss = nn.BCELoss()(out, label)
+            print(image.shape,label.shape,out.shape)
+            loss = nn.BCELoss()(out.float(), label.float())
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+
+            x = image[0]
+            x_ = out[0]
+            y = label[0]
+            img = torch.stack([x, x_, y], 0)
+            save_image(img.cpu(), "kk.png")
+
             print(f"\nEpoch: {epoch}/{EPOCH}, Loss: {loss}")
             if epoch % 1 == 0:
                 torch.save(model.state_dict(), 'res.pkl')
@@ -111,5 +122,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
