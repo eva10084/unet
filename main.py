@@ -65,9 +65,9 @@ else:
 
 
 def main():
-    SAVE_DIR=prefix+'haha'   # 保存参数路径
+    SAVE_DIR=prefix+'/haha'   # 保存参数路径
 
-    model = UNet(3, 2)
+    model = UNet()
     model = model.to(device)
     optimizer = optim.RMSprop(model.parameters(), lr=1e-3, weight_decay=1e-8, momentum=0.9)
     # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=2)  # 调整学习率
