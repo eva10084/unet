@@ -7,23 +7,20 @@ import SimpleITK as sitk
 import nibabel as nib
 import numpy as np
 import glob
-from torch.utils.data import DataLoader
-from torch.nn import DataParallel
-import torch.nn.functional as F
-from tqdm import tqdm
-from torch.backends import cudnn
-from torch import optim
-from utils_for_transfer import *
+from tool import *
+from unet import *
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import seaborn as sns
+
+
 sns.set(rc={'figure.figsize':(11.7,8.27)})
 palette = sns.color_palette("bright", 2)
 
 TestDir = 'Dataset/small_Patch192/LGE_test/'
-model_dir = 'experiments/loss_tSNE/model/0.70/0.703438.pkl'
+model_dir = 'model.pkl'
 # model_dir = 'gdrive/MyDrive/vae/experiments/loss_tSNE/save_param0.001/best_model'  # Google云盘
 
 if torch.cuda.is_available():
@@ -86,6 +83,7 @@ def show(dir):
 if __name__ == '__main__':
 
     show(TestDir)
-    # vaeencoder = VAE().to(device)
-    # vaeencoder.load_state_dict(torch.load(model_dir))
-    # SegNet(TestDir, vaeencoder, 0)
+
+    model = UNet().to(device)
+    UNet.load_state_dict(torch.load(model_dir))
+    SegNet(TestDir, UNet, 0)
