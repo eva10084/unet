@@ -66,7 +66,7 @@ else:
 
 
 def main():
-    SAVE_DIR=prefix+'haha'   # 保存参数路径
+    SAVE_DIR=prefix+'/haha'   # 保存参数路径
 
     model = UNet()
     model = model.to(device)
@@ -78,6 +78,9 @@ def main():
     dataloader = DataLoader(SourceData, batch_size=BatchSize, shuffle=True, num_workers=WORKERSNUM,
                                    pin_memory=True, drop_last=True)
 
+    TargetData = target_TrainSet(dataset_dir)
+    dataloader_test = DataLoader(SourceData, batch_size=BatchSize, shuffle=True, num_workers=WORKERSNUM,
+                            pin_memory=True, drop_last=True)
 
     if not os.path.exists(SAVE_DIR):   # 如果保存训练结果的目录不存在，则创建该目录
         os.mkdir(SAVE_DIR)
@@ -115,6 +118,7 @@ def main():
             print(f"\nEpoch: {epoch}/{EPOCH}, Loss: {loss}")
             if epoch % 1 == 0:
                 torch.save(model.state_dict(), 'res.pkl')
+
 
 
 
