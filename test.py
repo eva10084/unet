@@ -19,7 +19,7 @@ import seaborn as sns
 sns.set(rc={'figure.figsize': (11.7, 8.27)})
 palette = sns.color_palette("bright", 2)
 
-TestDir = 'Dataset/small_Patch192/LGE_test/'
+TestDir = 'Dataset/small_Patch192/C0/'
 model_dir = 'res.pkl'
 # model_dir = 'gdrive/MyDrive/vae/experiments/loss_tSNE/save_param0.001/best_model'  # Google云盘
 
@@ -31,9 +31,16 @@ else:
 
 # slice = 12
 
+def index_to_image(image):
+  image[image == 0] = 0
+  image[image == 1] = 85
+  image[image == 2] = 160
+  image[image == 3] = 255
+  return image
+
 def SegNet(dir, SegNet, gate):
-    name = glob.glob(dir + '*LGE.nii*')
-    slice = 12
+    name = glob.glob(dir + '*C0.nii*')
+    slice = 4
     SegNet.eval()
 
     for i in range(len(name)):
@@ -52,8 +59,13 @@ def SegNet(dir, SegNet, gate):
         # 对每个切片进行操作
         for slice in range(data.size(0)):
             output = SegNet(data[slice:slice + 1, :, :, :])
-
+            # [print(i) for i in output[0,:,55,55]]
+            # print(output.shape)
             truemax, result0 = torch.max(output, 1, keepdim=False)
+            # print(result0.shape)
+            # [print(i) for i in result0[:,55,55]]
+            result0 = index_to_image(result0)
+            # [print(i) for i in result0[:,55,55]]
             result0 = result0.detach().cpu().numpy()
             result[slice:slice + 1, :, :] = result0
 
@@ -66,7 +78,7 @@ def SegNet(dir, SegNet, gate):
 
 def show(dir):
     name = glob.glob(dir + '*_manual.nii*')
-    slice = 12
+    slice = 4
 
     for i in range(len(name)):
         itkimg = sitk.ReadImage(name[i].replace('\\', '/'))

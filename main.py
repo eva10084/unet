@@ -26,7 +26,7 @@ import seaborn as sns
 sns.set(rc={'figure.figsize': (11.7, 8.27)})
 palette = sns.color_palette("bright", 2)
 
-EPOCH = 2  # 轮数
+EPOCH = 20  # 轮数
 KLDLamda = 1.0  # Kullback-Leibler散度的权重
 
 PredLamda = 1e3
@@ -66,21 +66,24 @@ else:
 
 
 def one_hot(label):
-    label_onehot = torch.FloatTensor(label.size(0), 4, label.size(2), label.size(3)).zero_().to("cpu")
-    # 根据标签值对每个通道进行赋值
-    label_0 = (label == 0).nonzero()
-    label_onehot[:, 0, label_0[:, 2], label_0[:, 3]] = 1
-    label_85 = (label == 85).nonzero()
-    label_onehot[:, 1, label_85[:, 2], label_85[:, 3]] = 1
-    label_170 = (label == 170).nonzero()
-    label_onehot[:, 2, label_170[:, 2], label_170[:, 3]] = 1
-    label_255 = (label == 255).nonzero()
-    label_onehot[:, 3, label_255[:, 2], label_255[:, 3]] = 1
+    label_onehot = torch.nn.functional.one_hot(label, num_classes=4)
+    label_onehot = torch.squeeze(label_onehot, dim=1).permute(0, 3, 1, 2)
+    # label_onehot=torch.nn.functional.one_hot(label, 4, dim=1).permute(0, 3, 1, 2)
+    # label_onehot = torch.FloatTensor(label.size(0), 4, label.size(2), label.size(3)).zero_().to("cpu")
+    # # 根据标签值对每个通道进行赋值
+    # label_0 = (label == 0).nonzero()
+    # label_onehot[:, 0, label_0[:, 2], label_0[:, 3]] = 1
+    # label_85 = (label == 85).nonzero()
+    # label_onehot[:, 1, label_85[:, 2], label_85[:, 3]] = 1
+    # label_170 = (label == 170).nonzero()
+    # label_onehot[:, 2, label_170[:, 2], label_170[:, 3]] = 1
+    # label_255 = (label == 255).nonzero()
+    # label_onehot[:, 3, label_255[:, 2], label_255[:, 3]] = 1
     return label_onehot.to(device)
 
 
 def main():
-    SAVE_DIR = prefix + 'haha'  # 保存参数路径
+    SAVE_DIR = prefix + '/haha'  # 保存参数路径
 
     model = UNet()
     model = model.to(device)
@@ -101,36 +104,34 @@ def main():
 
         for image, label in tqdm(dataloader):
             image = image.to(device)
-            label = label.to(device)
-            label = label.unsqueeze(1)
-            print(image.shape, label.shape)
-
+            label = label.to(device, dtype=torch.int64)  # 需要int64参与运算
             label_onehot = one_hot(label)
-
-            # label = label.to(device, dtype=torch.int64).unsqueeze(1)  # 需要int64参与运算，squeeze：(n,1,512,512)->(n,512,512)
-            # label[label > 0] = 1  # !=0的地方即为1
+            # [print(i) for i in label_onehot[0][0]]
+            print(label_onehot.shape)
+            # exit()
             out = model(image)
-            # out = one_hot(out)
+            # _, out = torch.max(out, dim=1, keepdim=True)   # 将概率变成索引
+
             print(image.shape, label_onehot.shape, out.shape)
-            # loss =  F.binary_cross_entropy_with_logits(out.float(), label_onehot.float())
             loss = nn.BCELoss()(out.float(), label_onehot.float())
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            x = image[0]
-            x_ = out[0]
-            y = label_onehot[0]
-            print(x.shape, x_.shape, y.shape)
-            # print(y[:,130,130]) # [1., 0., 0., 0.]
-            # print(y[:,159,159]) # [0, 0., 0., 0.]
-            print(y[:, 80, 80])  # [1., 0., 0., 0.]
-
             print(f"\nEpoch: {epoch}/{EPOCH}, Loss: {loss}")
             if epoch % 1 == 0:
                 torch.save(model.state_dict(), 'res.pkl')
 
+
+'''
+            x = image[0]
+            x_ = out[0]
+            y = label_onehot[0]
+            print(x.shape,x_.shape,y.shape)
+            img = torch.stack([x, x_, y], 0)
+            save_image(img.cpu(), "kk.png")
+'''
 
 if __name__ == '__main__':
     main()

@@ -90,7 +90,7 @@ class source_TrainSet(Dataset):
         # nplab_o=transform.resize(nplab, (80,80 ), order=0,mode='edge', preserve_range=True)
 
 
-        return torch.from_numpy(npimg).unsqueeze(0).type(dtype=torch.FloatTensor), torch.from_numpy(nplab).type(dtype=torch.LongTensor)
+        return torch.from_numpy(npimg).unsqueeze(0).type(dtype=torch.FloatTensor), torch.from_numpy(nplab).unsqueeze(0).type(dtype=torch.LongTensor)
 
 
     def __len__(self):

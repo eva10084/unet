@@ -1,5 +1,5 @@
 import os
-import dataset
+# import dataset
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -237,5 +237,5 @@ class Trainer:
 
 
 if __name__ == '__main__':
-    t = Trainer(r"VOCdevkit\VOC2012", r'./model.plt', r'./model_{}_{}.plt', img_save_path=r'./train_img')
+    t = Trainer(r"VOCdevkit/VOC2012_small", r'model.plt', r'model_{}_{}.plt', img_save_path=r'train_img')
     t.train(1)
